@@ -43,29 +43,45 @@ class UserServiceTest {
     void testUpdateUser() {
         User user = new User();
         user.setUserId("testUser");
+        Quota quota = new Quota();
+        quota.setUserId("testUser");
+        quota.setRequestCount(1);
 
         when(userRepository.findByUserId("testUser")).thenReturn(user);
         when(elasticUserRepository.findByUserId("testUser")).thenReturn(user);
+        when(quotaRepository.findByUserId("testUser")).thenReturn(quota);
+        when(elasticQuotaRepository.findByUserId("testUser")).thenReturn(quota);
 
         userService.updateUser("testUser", user);
 
         verify(userRepository, times(1)).save(user);
         verify(elasticUserRepository, times(1)).save(user);
+        verify(quotaRepository, times(1)).findByUserId("testUser");
+        verify(elasticQuotaRepository, times(1)).findByUserId("testUser");
     }
+
 
     @Test
     void testDeleteUser() {
         User user = new User();
         user.setUserId("testUser");
+        Quota quota = new Quota();
+        quota.setUserId("testUser");
+        quota.setRequestCount(1);
 
         when(userRepository.findByUserId("testUser")).thenReturn(user);
         when(elasticUserRepository.findByUserId("testUser")).thenReturn(user);
+        when(quotaRepository.findByUserId("testUser")).thenReturn(quota);
+        when(elasticQuotaRepository.findByUserId("testUser")).thenReturn(quota);
 
         userService.deleteUser("testUser");
 
         verify(userRepository, times(1)).delete(user);
         verify(elasticUserRepository, times(1)).delete(user);
+        verify(quotaRepository, times(1)).delete(quota);
+        verify(elasticQuotaRepository, times(1)).delete(quota);
     }
+
 
     @Test
     void testConsumeQuota() {
@@ -100,10 +116,4 @@ class UserServiceTest {
 
         assertNotNull(result);
     }
-
-
-
-
-
 }
-
