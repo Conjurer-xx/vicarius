@@ -4,6 +4,9 @@ import com.example.backendtask.service.QuotaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * REST Controller for managing quotas for users.
+ */
 @RestController
 @RequestMapping("/users")
 public class QuotaController {
