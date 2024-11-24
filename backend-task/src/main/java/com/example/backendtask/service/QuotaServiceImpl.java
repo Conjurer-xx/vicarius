@@ -1,6 +1,6 @@
 package com.example.backendtask.service;
 
-import com.example.backendtask.entity.RequestTracking;
+import com.example.backendtask.model.RequestTracking;
 import com.example.backendtask.repository.RequestTrackingRepository;
 import org.springframework.stereotype.Service;
 

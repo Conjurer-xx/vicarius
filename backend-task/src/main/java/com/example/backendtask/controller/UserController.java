@@ -1,6 +1,6 @@
 package com.example.backendtask.controller;
 
-import com.example.backendtask.entity.User;
+import com.example.backendtask.model.User;
 import com.example.backendtask.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

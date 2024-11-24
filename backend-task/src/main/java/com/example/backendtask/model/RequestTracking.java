@@ -1,4 +1,4 @@
-package com.example.backendtask.entity;
+package com.example.backendtask.model;
 
 import jakarta.persistence.*;
 

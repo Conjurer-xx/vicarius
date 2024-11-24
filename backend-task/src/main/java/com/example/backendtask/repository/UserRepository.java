@@ -1,8 +1,9 @@
 package com.example.backendtask.repository;
 
-import com.example.backendtask.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import com.example.backendtask.model.User;
 
 import java.util.Optional;
 

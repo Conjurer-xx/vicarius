@@ -1,6 +1,6 @@
 package com.example.backendtask.service;
 
-import com.example.backendtask.entity.User;
+import com.example.backendtask.model.User;
 import com.example.backendtask.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

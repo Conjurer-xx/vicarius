@@ -1,7 +1,7 @@
 package com.example;
 
 import com.example.backendtask.controller.UserController;
-import com.example.backendtask.entity.User;
+import com.example.backendtask.model.User;
 import com.example.backendtask.service.QuotaService;
 import com.example.backendtask.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
