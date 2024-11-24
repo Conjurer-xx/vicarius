@@ -42,6 +42,9 @@ public class User {
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-increment ID
     private Long id;
+	
+    // Default constructor
+    public User() {}
 
     /**
 	 * @param id

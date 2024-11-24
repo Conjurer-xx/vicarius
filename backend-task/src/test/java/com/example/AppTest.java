@@ -1,100 +1,143 @@
 package com.example;
 
-import com.example.backendtask.controller.QuotaController;
+import com.example.backendtask.controller.UserController;
+import com.example.backendtask.entity.User;
 import com.example.backendtask.service.QuotaService;
+import com.example.backendtask.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-public class AppTest {
+class AppTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
+    private UserService userService;
+
+    @Mock
     private QuotaService quotaService;
 
     @InjectMocks
-    private QuotaController quotaController;
+    private UserController userController;
+
+    private ObjectMapper objectMapper;
 
     @BeforeEach
-    public void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(quotaController).build();
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
+        objectMapper = new ObjectMapper();
     }
 
     @Test
-    public void testGetResourceOneStatus_Allowed() throws Exception {
-        // Given: A user is within the allowed quota (not blocked)
-        Long userId = 1L;
-        when(quotaService.checkQuotaResourceOneStatus(userId)).thenReturn(true);
+    void testCreateUser() throws Exception {
+        User user = new User(1L, "John", "Doe");
+        when(userService.createUser(any(User.class))).thenReturn(user);
 
-        // When: The GET request is made for Resource One status
-        mockMvc.perform(get("/api/quota/resource-one/{userId}", userId))
-                // Then: The response should be OK (200) with a true body indicating the user is allowed
-                .andExpect(status().isOk())
-                .andExpect(content().string("true"));
-
-        // Verify that the service method was called with the correct userId
-        verify(quotaService, times(1)).checkQuotaResourceOneStatus(userId);
+        mockMvc.perform(post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(user)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.firstName").value("John"))
+                .andExpect(jsonPath("$.lastName").value("Doe"));
     }
 
     @Test
-    public void testGetResourceOneStatus_Blocked() throws Exception {
-        // Given: A user has exceeded the quota (blocked)
+    void testGetUserQuotaResourceOneStatus() throws Exception {
         Long userId = 1L;
-        when(quotaService.checkQuotaResourceOneStatus(userId)).thenReturn(false);
+        when(quotaService.getQuotaResourceOneStatus(userId)).thenReturn(true);
 
-        // When: The GET request is made for Resource One status
-        mockMvc.perform(get("/api/quota/resource-one/{userId}", userId))
-                // Then: The response should be OK (200) with a false body indicating the user is blocked
+        mockMvc.perform(get("/users/{userId}/quota-resource-one-status", userId))
                 .andExpect(status().isOk())
-                .andExpect(content().string("false"));
+                .andExpect(jsonPath("$").value(true));
 
-        // Verify that the service method was called with the correct userId
-        verify(quotaService, times(1)).checkQuotaResourceOneStatus(userId);
+        // Verify that QuotaService was called
+        verify(quotaService, times(1)).getQuotaResourceOneStatus(userId);
     }
 
     @Test
-    public void testGetResourceTwoStatus_Allowed() throws Exception {
-        // Given: A user is within the allowed quota for Resource Two (not blocked)
+    void testGetUserQuotaResourceTwoStatus() throws Exception {
         Long userId = 1L;
-        when(quotaService.checkQuotaResourceTwoStatus(userId)).thenReturn(true);
+        when(quotaService.getQuotaResourceTwoStatus(userId)).thenReturn(false);
 
-        // When: The GET request is made for Resource Two status
-        mockMvc.perform(get("/api/quota/resource-two/{userId}", userId))
-                // Then: The response should be OK (200) with a true body indicating the user is allowed
+        mockMvc.perform(get("/users/{userId}/quota-resource-two-status", userId))
                 .andExpect(status().isOk())
-                .andExpect(content().string("true"));
+                .andExpect(jsonPath("$").value(false));
 
-        // Verify that the service method was called with the correct userId
-        verify(quotaService, times(1)).checkQuotaResourceTwoStatus(userId);
+        // Verify that QuotaService was called
+        verify(quotaService, times(1)).getQuotaResourceTwoStatus(userId);
     }
 
     @Test
-    public void testGetResourceTwoStatus_Blocked() throws Exception {
-        // Given: A user has exceeded the quota for Resource Two (blocked)
+    void testConsumeQuotaResourceOne() throws Exception {
         Long userId = 1L;
-        when(quotaService.checkQuotaResourceTwoStatus(userId)).thenReturn(false);
+        doNothing().when(quotaService).consumeQuotaResourceOne(userId);
 
-        // When: The GET request is made for Resource Two status
-        mockMvc.perform(get("/api/quota/resource-two/{userId}", userId))
-                // Then: The response should be OK (200) with a false body indicating the user is blocked
-                .andExpect(status().isOk())
-                .andExpect(content().string("false"));
+        mockMvc.perform(post("/users/{userId}/consume-resource-one", userId))
+                .andExpect(status().isOk());
 
-        // Verify that the service method was called with the correct userId
-        verify(quotaService, times(1)).checkQuotaResourceTwoStatus(userId);
+        // Verify that QuotaService was called
+        verify(quotaService, times(1)).consumeQuotaResourceOne(userId);
+    }
+
+    @Test
+    void testConsumeQuotaResourceTwo() throws Exception {
+        Long userId = 1L;
+        doNothing().when(quotaService).consumeQuotaResourceTwo(userId);
+
+        mockMvc.perform(post("/users/{userId}/consume-resource-two", userId))
+                .andExpect(status().isOk());
+
+        // Verify that QuotaService was called
+        verify(quotaService, times(1)).consumeQuotaResourceTwo(userId);
+    }
+
+    @Test
+    void testConsumeQuotaResourceOneWhenBlocked() throws Exception {
+        Long userId = 1L;
+        doThrow(new RuntimeException("User is permanently blocked from consuming resources."))
+                .when(quotaService).consumeQuotaResourceOne(userId);
+
+        mockMvc.perform(post("/users/{userId}/consume-resource-one", userId))
+                .andExpect(status().isForbidden())
+                .andExpect(content().string("User is permanently blocked from consuming resources."));
+
+        // Verify that QuotaService was called
+        verify(quotaService, times(1)).consumeQuotaResourceOne(userId);
+    }
+
+    @Test
+    void testConsumeQuotaResourceTwoWhenBlocked() throws Exception {
+        Long userId = 1L;
+        doThrow(new RuntimeException("User is permanently blocked from consuming resources."))
+                .when(quotaService).consumeQuotaResourceTwo(userId);
+
+        mockMvc.perform(post("/users/{userId}/consume-resource-two", userId))
+                .andExpect(status().isForbidden())
+                .andExpect(content().string("User is permanently blocked from consuming resources."));
+
+        // Verify that QuotaService was called
+        verify(quotaService, times(1)).consumeQuotaResourceTwo(userId);
+    }
+
+    @Test
+    void testCreateUserInvalidData() throws Exception {
+        User user = new User();
+        mockMvc.perform(post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(user)))
+                .andExpect(status().isBadRequest());
     }
 }
